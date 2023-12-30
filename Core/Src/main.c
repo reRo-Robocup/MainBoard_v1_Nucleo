@@ -24,17 +24,34 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <math.h>
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define deg_to_rad(deg) (((deg) / 360) * 2 * M_PI)
+#define rad_to_deg(rad) (((rad) / 2 / M_PI) * 360)
+int stopDuty = 899/2;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+void motor(int angle);
+void roll(int motor, float duty);
+int MotorTIM[4] = {
+		TIM_CHANNEL_1,
+		TIM_CHANNEL_2,
+		TIM_CHANNEL_3,
+		TIM_CHANNEL_4,
+};
+const int MotorTF[4] = {
+		1, -1, 1, -1
+};
+float MPowerVector[4] = {0};
+const int _motorAngles[4] = {45, 135, 225, 315};
+float tmp[4];
+float tmp_1[4];
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -107,16 +124,21 @@ int main(void)
   if (HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4) != HAL_OK){
         Error_Handler();
   }
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, stopDuty);
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, stopDuty);
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, stopDuty);
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, stopDuty);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 200);
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 200);
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 200);
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 200);
+//	  roll(TIM_CHANNEL_1,0.2);
+//	  roll(TIM_CHANNEL_2,0.2);
+//	  roll(TIM_CHANNEL_3,-0.2);
+//	  roll(TIM_CHANNEL_4,-0.2);
+	  motor(90);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -179,7 +201,29 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void motor(int angle) {
+    angle = 450 - angle;
+    while (angle > 359)
+        angle -= 360;
+    while (angle < 0)
+        angle += 360;
+    for (int i = 0; i < 4; i++) {
+    	tmp_1[i] = angle - _motorAngles[i];
+    	tmp[i] = deg_to_rad(tmp_1[i]);
+        MPowerVector[i] = sin(tmp[i]) * MotorTF[i];
+    }
+    for(int i = 0; i < 4; i++) {
+    	roll(MotorTIM[i], MPowerVector[i]);
+    }
+}
 
+void roll(int motor, float duty) {
+	const float speed_fix = 0.2;
+	duty *= speed_fix;
+	duty += 1.0;
+	duty *= stopDuty;
+	__HAL_TIM_SET_COMPARE(&htim1, motor, (int)duty);
+}
 /* USER CODE END 4 */
 
 /**
