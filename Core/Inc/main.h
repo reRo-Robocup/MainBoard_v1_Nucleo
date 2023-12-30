@@ -65,6 +65,10 @@ void Error_Handler(void);
 #define USART_RX_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define Camera_TX6_Pin GPIO_PIN_6
+#define Camera_TX6_GPIO_Port GPIOC
+#define Camera_RX6_Pin GPIO_PIN_7
+#define Camera_RX6_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
